@@ -257,6 +257,29 @@ var NodeBittrexApi = function() {
                   if (result === true) {
                     ((opts.verbose) ? console.log('Subscribed to ' + market) : '');
                   }
+
+
+
+                  //////// Get entire orderbook to start //////
+                  wsclient.call('CoreHub', 'QueryExchangeState', market).done(function(err, result) {
+                    if (err) {
+                      return console.error(err);
+                    }
+
+                    var data = {
+                      M: 'entireOrderbook',
+                      market: market,
+                      result: result
+                    }
+                    websocketMarketsCallback(data, wsclient);
+                  });
+                  ////////////////////////////////////////////
+
+
+
+
+
+
                 });
               });
             }
