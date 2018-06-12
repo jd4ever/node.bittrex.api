@@ -183,31 +183,32 @@ var NodeBittrexApi = function() {
       try { wsclient.end(); } catch (e) {}
     }
     
-    if (!websocketWatchDog) {
-      websocketWatchDog = setInterval(function() {
-        if (!wsclient) {
-          return;
-        }
+    // if (!websocketWatchDog) {
+    //   websocketWatchDog = setInterval(function() {
+    //     if (!wsclient) {
+    //       return;
+    //     }
 
-        if (
-          opts.websockets &&
-          (
-            opts.websockets.autoReconnect === true ||
-            typeof(opts.websockets.autoReconnect) === 'undefined'
-          )
-        ) {
-          var now = (new Date()).getTime();
-          var diff = now - websocketLastMessage;
+    //     if (
+    //       opts.websockets &&
+    //       (
+    //         opts.websockets.autoReconnect === true ||
+    //         typeof(opts.websockets.autoReconnect) === 'undefined'
+    //       )
+    //     ) {
+    //       var now = (new Date()).getTime();
+    //       var diff = now - websocketLastMessage;
   
-          if (diff > 60 * 1000) {
-            ((opts.verbose) ? console.log('Websocket Watch Dog: Websocket has not received communication for over 1 minute. Forcing reconnection. Ruff!') : '');
-            connectws(callback, true);
-          } else {
-            ((opts.verbose) ? console.log('Websocket Watch Dog: Last message received '+diff+'ms ago. Ruff!') : '');
-          }
-        }
-      }, 5 * 1000);
-    }
+    //       if (diff > 60 * 1000) {
+    //         ((opts.verbose) ? console.log('Websocket Watch Dog: Websocket has not received communication for over 1 minute. Forcing reconnection. Ruff!') : '');
+    //         wsclient.end();
+    //         connectws(callback, true);
+    //       } else {
+    //         ((opts.verbose) ? console.log('Websocket Watch Dog: Last message received '+diff+'ms ago. Ruff!') : '');
+    //       }
+    //     }
+    //   }, 5 * 1000);
+    // }
 
     cloudscraper.get('https://bittrex.com/', function(error, response, body) {
       if (error) {
@@ -264,6 +265,7 @@ var NodeBittrexApi = function() {
         },
         onerror: function(error) {
           ((opts.verbose) ? console.log('Websocket onerror: ', error) : '');
+          connectws(callback, true);
         },
         bindingError: function(error) {
           ((opts.verbose) ? console.log('Websocket bindingError: ', error) : '');
@@ -311,7 +313,11 @@ var NodeBittrexApi = function() {
                     market: market,
                     result: result
                   }
-                  websocketMarketsCallback(data, wsclient);
+                  if (websocketMarketsCallbacks.length > 0) {
+                    websocketMarketsCallbacks.forEach(function(callback) {
+                      callback(data, wsclient);
+                    });
+                  }
                 });
                 ////////////////////////////////////////////
 
